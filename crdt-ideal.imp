@@ -10,9 +10,10 @@ let rightmost_leaf =
         edit . (max [leaf | (leaf rightmost_child)])))) in
 let prev = 
   edits (?edit . edit .
-    let prev_siblings = (edit sibling) (?sibling . 
-      (when (edit > sibling) 
-        sibling)) in
+    let prev_siblings = 
+      (edit sibling) (?sibling . 
+        (when (edit > sibling) 
+          sibling)) in
     if !!prev_siblings
      (max [prev_siblings] rightmost_leaf)
      (edit parent)) in

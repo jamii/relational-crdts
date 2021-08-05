@@ -24,11 +24,11 @@ let max =
   ?[things] . 
     (when !!things
       (reduce things 0 (?[prev] . ?[i] . (if (prev > i) prev i)))) in
-let child = parent (?child . ?parent . parent . child) in
+      
 let sibling = 
-  edits (?edit . edit . (edit parent child)) in
+  edits (?edit . edit . (edit parent (~parent))) in
 let rightmost_child =
-  edits (?edit . edit . (max [edit child])) in
+  edits (?edit . edit . (max [edit (~parent)])) in
 let rightmost_leaf = 
   fix 
     (edits (?edit . edit . edit)) 
@@ -44,10 +44,9 @@ let prev =
     if !!prev_siblings
      (max [prev_siblings] rightmost_leaf)
      (edit parent))) in
-let next = prev (?edit . ?prev_edit . prev_edit . edit) in
 let position = 
   fix (root . 0) (?[position] .
     (position |
-    (position (?edit . ?pos . (edit next) . (pos + 1))))) in
+    (position (?edit . ?pos . (edit (~prev)) . (pos + 1))))) in
 edits (?edit .
   (edit position) . edit . (edit character))
