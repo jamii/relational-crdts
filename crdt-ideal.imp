@@ -1,0 +1,24 @@
+let sibling = 
+  edits (?edit . edit . (edit parent ~parent)) in
+let rightmost_child =
+  edits (?edit . edit . (max [edit ~parent])) in
+let rightmost_leaf = 
+  fix 
+    (edits (?edit . edit . edit)) 
+    (?[rightmost_leaf] .
+      (rightmost_leaf (?edit . ?leaf .
+        edit . (max [leaf | (leaf rightmost_child)])))) in
+let prev = 
+  edits (?edit . edit .
+    let prev_siblings = (edit sibling) (?sibling . 
+      (when (edit > sibling) 
+        sibling)) in
+    if !!prev_siblings
+     (max [prev_siblings] rightmost_leaf)
+     (edit parent)) in
+let position = 
+  fix (root . 0) (?[position] .
+    (position |
+    (position (?edit . ?pos . (edit ~prev) . (pos + 1))))) in
+edits (?edit .
+  (edit position) . edit . (edit character))

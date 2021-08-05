@@ -1,0 +1,53 @@
+let edits = range 0 8 in
+let character =
+  0 . "a" |
+  1 . "b" |
+  2 . "e" |
+  3 . "c" |
+  4 . "d" |
+  5 . "f" |
+  6 . "g" |
+  7 . "h" |
+  8 . "i" in
+let root =
+  0 in
+let parent =
+  1 . 0 |
+  2 . 0 |
+  3 . 1 |
+  4 . 1 |
+  5 . 2 |
+  6 . 5 |
+  7 . 5 |
+  8 . 5 in
+let max = 
+  ?[things] . 
+    (when !!things
+      (reduce things 0 (?[prev] . ?[i] . (if (prev > i) prev i)))) in
+let child = parent (?child . ?parent . parent . child) in
+let sibling = 
+  edits (?edit . edit . (edit parent child)) in
+let rightmost_child =
+  edits (?edit . edit . (max [edit child])) in
+let rightmost_leaf = 
+  fix 
+    (edits (?edit . edit . edit)) 
+    (?[rightmost_leaf] .
+      (rightmost_leaf (?edit . ?leaf .
+        edit . (max [leaf | (leaf rightmost_child)])))) in
+let prev = 
+  edits (?edit . edit .
+    (let prev_siblings = (edit sibling) (?sibling . 
+      (if (edit > sibling) 
+        sibling 
+        (1 & 0))) in
+    if !!prev_siblings
+     (max [prev_siblings] rightmost_leaf)
+     (edit parent))) in
+let next = prev (?edit . ?prev_edit . prev_edit . edit) in
+let position = 
+  fix (root . 0) (?[position] .
+    (position |
+    (position (?edit . ?pos . (edit next) . (pos + 1))))) in
+edits (?edit .
+  (edit position) . edit . (edit character))
