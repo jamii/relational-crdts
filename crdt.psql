@@ -1,0 +1,36 @@
+drop table if exists edit cascade;
+create table edit(id integer, parent_id integer, character text);
+insert into edit values (0, null, 'a');
+insert into edit values (1, 0, 'b');
+insert into edit values (2, 0, 'e');
+insert into edit values (3, 1, 'c');
+insert into edit values (4, 1, 'd');
+insert into edit values (5, 2, 'f');
+insert into edit values (6, 5, 'g');
+insert into edit values (7, 5, 'h');
+insert into edit values (8, 5, 'i');
+
+select '---';
+select 'sequential';
+
+with recursive sequence(last_id, characters, ids, p) as (
+  select 0, 'a', array[0], 0
+  union all
+  select edit.id, 
+  substring(sequence.characters, 1, insertion_point.insertion_point-1) || edit.character || substring(sequence.characters, insertion_point.insertion_point), 
+  sequence.ids[1:insertion_point.insertion_point-1] || edit.id || sequence.ids[insertion_point.insertion_point:], 
+  insertion_point.insertion_point
+  from sequence, edit
+  join lateral (
+      select coalesce(min(i), array_length(sequence.ids, 1)+1) as insertion_point
+      from generate_subscripts(sequence.ids, 1) as i
+      join lateral (select j from  generate_subscripts(sequence.ids, 1) as j where sequence.ids[j] = edit.parent_id) as parent_ix on true
+      join lateral (select k from  generate_subscripts(sequence.ids, 1) as k, edit as o_edit where  sequence.ids[k] = o_edit.parent_id and sequence.ids[i] = o_edit.id) as o_parent_ix on true
+      where i > parent_ix.j
+      and o_parent_ix.k < parent_ix.j
+  ) as insertion_point on true
+  where sequence.last_id + 1 = edit.id
+)
+select * from sequence;
+--order by last_id desc
+--limit 1;
